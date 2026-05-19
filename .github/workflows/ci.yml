@@ -5,6 +5,9 @@ on:
     branches: [main, master]
   pull_request:
 
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+
 jobs:
   backend:
     name: Backend (${{ matrix.os }}, Python ${{ matrix.python-version }})
