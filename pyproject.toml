@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-debate"
+version = "0.1.0"
+description = "Local multi-agent debate workbench for CLI-backed LLMs."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [
+  { name = "AI Debate contributors" }
+]
+keywords = ["ai", "debate", "fastapi", "nuxt", "llm"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: FastAPI",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+  "fastapi>=0.115",
+  "pydantic>=2.7",
+  "uvicorn[standard]>=0.30"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0"
+]
+
+[project.scripts]
+ai-debate-api = "app.cli:main"
+ai-debate-check-llm = "check_llm:main"
+
+[tool.setuptools]
+py-modules = ["check_llm"]
+
+[tool.setuptools.packages.find]
+include = ["app*", "llms*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,91 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+.gemini/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node / frontend projects
+node_modules/
+**/node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+!.yarn/releases/
+!.yarn/plugins/
+!.yarn/sdks/
+!.yarn/versions/
+
+# Vite / Nuxt / general frontend outputs
+**/dist/
+**/build/
+**/.nuxt/
+**/.nitro/
+**/.output/
+**/.data/
+**/.cache/
+**/.vite/
+**/coverage/
+
+# Logs and tool state
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.playwright-mcp/
+**/.playwright-mcp/
+playwright-report/
+test-results/
+
+# Local planning and handoff notes from development sessions
+agent_prompts.md
+coordination.md
+plan.md
+FRONTEND_HANDOFF.md
+frontend-nuxt/.github/
+frontend-nuxt/docs/deploy-joseon.md
+frontend-nuxt/scripts/deploy-joseon.sh
+
+# App runtime data and local screenshots
+debate/*
+!debate/.gitkeep
+!debate/mcp_servers.example.json
+/*.png
+
+# Nested repositories and local archives
+**/.git/
+*.zip
+*.tar
+*.tar.gz
+*.tgz

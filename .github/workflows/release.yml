@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: Package ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend-nuxt/pnpm-lock.yaml
+      - name: Install backend
+        run: python -m pip install -e ".[dev]"
+      - name: Install frontend
+        working-directory: frontend-nuxt
+        run: pnpm install --frozen-lockfile
+      - name: Verify backend
+        run: python -m pytest -q
+      - name: Verify frontend
+        working-directory: frontend-nuxt
+        run: |
+          pnpm lint
+          pnpm typecheck
+          pnpm build
+      - name: Package release archive
+        run: ./scripts/package-release.sh "$GITHUB_REF_NAME" "${{ matrix.platform }}"
+      - name: Upload release archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-debate-${{ github.ref_name }}-${{ matrix.platform }}
+          path: |
+            dist/release/ai-debate-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz
+            dist/release/ai-debate-${{ github.ref_name }}-${{ matrix.platform }}.tar.gz.sha256
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist/artifacts
+          merge-multiple: true
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/artifacts/*
+          generate_release_notes: true

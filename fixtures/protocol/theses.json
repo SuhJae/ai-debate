@@ -1,0 +1,38 @@
+{
+  "valid_thesis": {
+    "type": "thesis",
+    "agent": "codex",
+    "position": "We should use FastAPI because it is fast.",
+    "decision": "Use FastAPI",
+    "action_plan": [
+      "Set up app structure",
+      "Configure routes",
+      "Add WebSocket support"
+    ],
+    "risks": [
+      "Learning curve"
+    ],
+    "success_criteria": [
+      "API is responsive",
+      "WebSocket streams correctly"
+    ]
+  },
+  "invalid_ambiguous_decision": {
+    "type": "thesis",
+    "agent": "gemini",
+    "position": "Both are good.",
+    "decision": "maybe FastAPI or Django",
+    "action_plan": ["A", "B", "C"],
+    "risks": [],
+    "success_criteria": ["1", "2"]
+  },
+  "invalid_missing_action_plan": {
+    "type": "thesis",
+    "agent": "claude",
+    "position": "A position",
+    "decision": "FastAPI",
+    "action_plan": ["A"],
+    "risks": [],
+    "success_criteria": ["1", "2"]
+  }
+}
