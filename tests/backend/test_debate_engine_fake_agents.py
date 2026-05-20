@@ -794,6 +794,49 @@ def test_consensus_propose_accept_withdraw(tmp_path):
         asyncio.set_event_loop(None)
 
 
+def test_standalone_consensus_action_counts_as_vote(tmp_path):
+    storage = DebateStorage(tmp_path)
+    registry = AgentRegistry(
+        {
+            AgentId.CODEX: FakeLLM("codex", [_thesis("codex"), _ack("codex"), _consensus_turn("codex", "propose")]),
+            AgentId.GEMINI: FakeLLM("gemini", [_thesis("gemini"), _ack("gemini"), _turn("gemini")]),
+            AgentId.CLAUDE: FakeLLM("claude", [_thesis("claude"), _ack("claude"), _turn("claude")]),
+        }
+    )
+    engine = DebateEngine(storage, registry)
+
+    async def scenario():
+        state = await engine.create_debate("Standalone Consensus Action Test", "Choose one stack.")
+        state = await engine.start_theses(state.id)
+        state = await engine.share_theses(state.id)
+
+        state = await engine.run_turn(state.id, AgentId.CODEX)
+        proposal_id = state.consensus_proposals[-1].id
+
+        registry.get_agent(AgentId.GEMINI).scripted_responses = [
+            _standalone_consensus_action("gemini", "accept", proposal_id)
+        ]
+        state = await engine.run_turn(state.id, AgentId.GEMINI)
+        assert state.rounds[-1].consensus_action is not None
+        assert state.consensus is None
+
+        registry.get_agent(AgentId.CLAUDE).scripted_responses = [
+            _standalone_consensus_action("claude", "accept", proposal_id)
+        ]
+        state = await engine.run_turn(state.id, AgentId.CLAUDE)
+        assert state.phase == DebatePhase.CONSENSUS_REACHED
+        assert state.consensus is not None
+        assert set(state.consensus.agreed_by) == {AgentId.CODEX, AgentId.GEMINI, AgentId.CLAUDE}
+
+    loop = asyncio.new_event_loop()
+    try:
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(scenario())
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)
+
+
 def test_run_turn_can_recover_failed_debate_with_existing_theses(tmp_path):
     storage = DebateStorage(tmp_path)
     registry = AgentRegistry(
@@ -1871,6 +1914,23 @@ def _consensus_turn(
         }
         if reason:
             payload["consensus_action"]["reason"] = reason
+    return json.dumps(payload)
+
+
+def _standalone_consensus_action(
+    agent: str,
+    action: str,
+    proposal_id: str | None = None,
+    reason: str | None = None,
+) -> str:
+    payload = {
+        "type": "consensus_action",
+        "agent": agent,
+        "action": action,
+        "proposal_id": proposal_id,
+    }
+    if reason:
+        payload["reason"] = reason
     return json.dumps(payload)
 
 

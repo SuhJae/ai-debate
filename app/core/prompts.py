@@ -454,14 +454,14 @@ To accept consensus, set:
   "type": "consensus_action",
   "agent": "{agent_str}",
   "action": "accept",
-  "proposal_id": "consensus-001-{agent_str}"
+  "proposal_id": "{consensus_example}"
 }}
 To reject consensus, set:
 {{
   "type": "consensus_action",
   "agent": "{agent_str}",
   "action": "reject",
-  "proposal_id": "consensus-001-{agent_str}",
+  "proposal_id": "{consensus_example}",
   "reason": "specific reason this is not ready"
 }}
 To withdraw your consensus or your own proposal, set:
@@ -469,11 +469,13 @@ To withdraw your consensus or your own proposal, set:
   "type": "consensus_action",
   "agent": "{agent_str}",
   "action": "withdraw",
-  "proposal_id": "consensus-001-{agent_str}"
+  "proposal_id": "{consensus_example}"
 }}
 
 Consensus rules:
 - `final_writer` must be exactly one of: {writer_choices}.
+- `proposal_id` for accept/reject/withdraw must be copied exactly from Open consensus proposals above. If there are no open proposals, do not accept, reject, or withdraw.
+- Put the consensus action inside the top-level `debate_turn.consensus_action` field. Do not return a standalone `{{"type":"consensus_action", ...}}` object.
 - Do not default to yourself as final_writer. Choose the agent who is best positioned to synthesize the final answer.
 - Prefer the agent who contributed the strongest evidence, corrected the most important misunderstanding, or most clearly integrated the current tradeoffs.
 - You may nominate yourself only when your own contribution is clearly the strongest synthesis, and the discussion should briefly make that reason visible.

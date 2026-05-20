@@ -143,3 +143,20 @@ def test_validate_debate_turn_consensus_action_requirements():
     }
     with pytest.raises(ValidationError, match="consensus_summary"):
         validate_debate_turn(json.dumps(invalid), "codex")
+
+
+def test_validate_debate_turn_accepts_standalone_consensus_action():
+    payload = {
+        "type": "consensus_action",
+        "agent": "codexAnalyst",
+        "action": "accept",
+        "proposal_id": "consensus-007-claud",
+    }
+
+    turn = validate_debate_turn(json.dumps(payload), "codexAnalyst")
+
+    assert turn.type == "debate_turn"
+    assert turn.agent == "codexAnalyst"
+    assert turn.consensus_action is not None
+    assert turn.consensus_action.action == "accept"
+    assert turn.consensus_action.proposal_id == "consensus-007-claud"

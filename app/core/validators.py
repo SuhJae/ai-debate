@@ -4,6 +4,7 @@ from typing import Any
 
 from app.mcp.schemas import (
     ConsensusAction,
+    ConsensusActionPayload,
     DebateTurnPayload,
     FinalReviewPayload,
     ReviewVerdict,
@@ -66,6 +67,9 @@ def validate_thesis(text: str, expected_agent: str) -> ThesisPayload:
 
 def validate_debate_turn(text: str, expected_agent: str) -> DebateTurnPayload:
     payload_dict = extract_json_object(text)
+    if payload_dict.get("type") == "consensus_action":
+        return _validate_standalone_consensus_action(payload_dict, expected_agent)
+
     _validate_common(payload_dict, "debate_turn", expected_agent)
 
     try:
@@ -99,6 +103,39 @@ def validate_debate_turn(text: str, expected_agent: str) -> DebateTurnPayload:
                 raise ValidationError("Consensus reject requires reason")
 
     return turn
+
+
+def _validate_standalone_consensus_action(
+    payload_dict: dict[str, Any],
+    expected_agent: str,
+) -> DebateTurnPayload:
+    """Accept action-only consensus replies as a compact debate turn.
+
+    Agents sometimes follow the consensus examples as if they were tool calls
+    and return only the nested consensus action object. Keeping the vote is
+    safer than sending it through repair, where the action may be dropped.
+    """
+    try:
+        action = ConsensusActionPayload(**payload_dict)
+    except Exception as e:
+        raise ValidationError(f"Invalid ConsensusActionPayload schema: {e}")
+    if action.agent != expected_agent:
+        raise ValidationError(
+            f"Consensus action agent must be '{expected_agent}', got '{action.agent}'"
+        )
+
+    action_name = action.action.value if hasattr(action.action, "value") else str(action.action)
+    proposal_text = f" for <{action.proposal_id}>" if action.proposal_id else ""
+    return DebateTurnPayload(
+        type="debate_turn",
+        agent=expected_agent,
+        reply_to=["system"],
+        discussion=f"Recorded consensus action: {action_name}{proposal_text}.",
+        evidence=[],
+        evidence_refs=[],
+        consensus_action=action,
+        consensus_signal=None,
+    )
 
 
 def _mentions_other_agent(text: str, expected_agent: str, reply_targets: list[str]) -> bool:
